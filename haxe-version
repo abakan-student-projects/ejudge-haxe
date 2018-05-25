@@ -1,0 +1,114 @@
+#!/bin/sh
+# $Id$
+# (C) 2005-2017 Haxe Foundation
+
+LANG_CONFIG_DIR="/home/judges/compile/conf/lang.d"
+
+common_config() {
+  echo 'long_name="Haxe"'
+  echo 'src_sfx=".hx"'
+  echo 'arch="linux-shared"'
+}
+
+failure() {
+  rm -f conftest*
+  echo 'version='
+  echo 'arg="'"${arg}"'"'
+  common_config
+  echo 'HAXERUN=false'
+  echo 'HAXEVER='
+  [ "${verbose}" = 1 ] && echo "no" >&2
+  exit 1
+}
+
+unset LANG
+unset LC_ALL
+unset LC_MESSAGES
+unset LANGUAGE
+
+if [ x"$1" = x-v ]
+then
+  verbose=1
+  shift
+fi
+
+# recheck the language
+if [ x"$1" = x-r ]
+then
+  arg="$2"
+  [ x"$2" != x ] && HAXERUN="$2"
+  [ "${HAXERUN}" = "" ] && HAXERUN="haxe"
+
+  [ "${verbose}" = 1 ] && echo -n "checking whether Haxe is available..." >&2
+  haxedir1=`dirname "${HAXERUN}"`
+  if [ "${haxedir1}" = . ]
+  then
+    HAXERUN="haxe"
+  else
+    HAXERUN="${haxedir1}/haxe"
+  fi
+  "${HAXERUN}" -version >/dev/null 2>/dev/null || failure
+  version=`${HAXERUN} -version 2>&1 ` || failure
+  [ "${version}" != "" ] || failure
+  case x"${version}" in
+    x3.4.*) HAXEVER=3.4;;
+    *) failure;;
+  esac
+
+  cat > Main.hx <<EOF
+import neko.Lib;
+class Main
+{
+  static function main()
+  {
+    Sys.stdout().writeString("OK");
+  }
+}
+EOF
+    "${HAXERUN}" -neko conftest.n -main Main >/dev/null 2>/dev/null || failure
+  [ -f conftest.n ] || failure
+
+  rm -f ./conftest.n*
+  echo 'version="'"${version}"'"'
+  echo 'arg="'"${arg}"'"'
+  common_config
+  echo 'HAXERUN="'"${HAXERUN}"'"'
+  echo 'HAXEVER="'"${HAXEVER}"'"'
+  [ "${verbose}" = 1 ] && echo "yes, ${HAXERUN}, ${version}" >&2
+  exit 0
+fi
+
+if [ x"$1" = x-l ]
+then
+  echo "Haxe Compiler [http://haxe.org/]"
+  exit 0
+fi
+
+[ "${EJUDGE_LANG_CONFIG}" = "" ] && EJUDGE_LANG_CONFIG="${LANG_CONFIG_DIR}/haxe.cfg"
+
+if [ -f "${EJUDGE_LANG_CONFIG}" ]
+then
+  . "${EJUDGE_LANG_CONFIG}"
+else
+  HAXERUN="/usr/bin/haxe"
+  HAXEVER="3.4"
+fi
+
+if [ x"${HAXERUN}" = x -o x"${HAXERUN}" = xfalse ]
+then
+  echo "This language is not supported." >&2
+  exit 1
+fi
+
+
+if [ x"$1" = x-p ]
+then
+    echo "${HAXERUN}"
+    exit 0
+fi
+    
+"${HAXERUN}" -version 2>/dev/null >/dev/null || exit 1
+
+[ x"$1" = x-f ] && echo -n "Haxe Compiler "
+
+"${HAXERUN}" -version 2>&1

@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# using EJUDGE_FLAGS we may pass additional flags
+
+LANG_CONFIG_DIR="/home/judges/compile/conf/lang.d"
+[ "${EJUDGE_LANG_CONFIG}" = "" ] && EJUDGE_LANG_CONFIG="${LANG_CONFIG_DIR}/haxe.cfg"
+
+if [ -f "${EJUDGE_LANG_CONFIG}" ]
+then
+  . "${EJUDGE_LANG_CONFIG}"
+else
+  version="unknown"
+  HAXERUN="haxe"
+  HAXEVER="unknown"
+fi
+
+if [ x"${version}" = x ]
+then
+  echo "This language is not supported." >&2
+  exit 1
+fi
+
+
+[ x"${EJUDGE_FLAGS}" = x ] && EJUDGE_FLAGS=""
+
+unset LANG
+unset LC_ALL
+unset LC_MESSAGES
+unset LANGUAGE
+
+cp $1 Solution.hx
+
+"${HAXERUN}" -cpp bin -main Solution ${EJUDGE_FLAGS} || echo "Error"
+
+cp -v bin/Solution $2
+
+rm -R bin
+rm Solution.hx

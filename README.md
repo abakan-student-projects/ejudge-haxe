@@ -1,4 +1,4 @@
-                                        Инструкция установки ЯП Haxe
+# Инструкция установки Haxe в системе Ejudge
 
     1. Перейти в каталог /home/judges/compile/conf и открываем файл compile.cfg.
     2. В конец файла добавить следующий код:
@@ -14,3 +14,4 @@
     5. Перейти в каталог /home/judges/000001/conf и открыть файл serve.cfg. В него записать строку compile_real_time_limit = 300.
     6. Перейти в serve-control и зайти под администратором. (https://localhost/cgi-bin/serve-control)
     7. В таблице напротив test contest перейти settings/language settings. В списке найти ЯП Haxe и напротив него нажать activate.
+    8. Перезапустить ejudge
